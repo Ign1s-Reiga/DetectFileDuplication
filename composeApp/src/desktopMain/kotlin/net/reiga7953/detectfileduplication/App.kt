@@ -1,22 +1,15 @@
 package net.reiga7953.detectfileduplication
 
 import androidx.compose.desktop.ui.tooling.preview.Preview
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
@@ -44,12 +37,11 @@ fun App() {
     val testData = persistentListOf("Apple", "Orange", "Grape")
 
     MaterialTheme {
-        Box(modifier = Modifier.padding(horizontal = 20.dp).offset(y = 55.dp)) {
-            Column {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Folder path: ")
-                    Spacer(modifier = Modifier.width(7.dp))
-                    TextField(
+        Column(modifier = Modifier.padding(40.dp)) {
+            GridView(
+                persistentListOf(
+                    { Text("Folder path: ") },
+                    { TextField(
                         value = mainViewState.folderPath,
                         modifier = Modifier.fillMaxWidth(),
                         isError = mainViewState.folderPath.isEmpty(),
@@ -57,13 +49,9 @@ fun App() {
                             mainViewState.folderPath = it
                         },
                         singleLine = true
-                    )
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Extension filter (Optional): ", fontSize = 16.sp)
-                    Spacer(modifier = Modifier.width(7.dp))
-                    TextField(
+                    ) },
+                    { Text("Extension filter (Optional): ", fontSize = 16.sp) },
+                    { TextField(
                         value = mainViewState.extFilter,
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = { Text("ex) .png, .jpg") },
@@ -71,44 +59,35 @@ fun App() {
                             mainViewState.extFilter = it
                         },
                         singleLine = true,
-                    )
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Button(
-                    onClick = {
-                        detectFileDuplication(mainViewState.folderPath)
-                            .also {
+                    ) },
+                    { Button(
+                        onClick = {
+                            detectFileDuplication(mainViewState.folderPath).also {
                                 when (it) {
                                     Result.NOT_EXISTS -> {
                                         mainViewState.open()
                                         dialogContent =
                                             "Such folder was not found" to "Please check folder path what you typed is correctly."
                                     }
-
                                     Result.INVALID_PATH -> {
                                         mainViewState.open()
                                         dialogContent =
                                             "Invalid folder path" to "Please check folder path what you typed is correctly."
                                     }
-
                                     else -> {}
                                 }
                             }
-                    },
-                    enabled = mainViewState.folderPath.isNotEmpty(),
-                    modifier = Modifier.align(Alignment.End),
-                    content = { Text("Detect") }
-                )
-                DataTable(content = testData)
-                LinearProgressIndicator(
-                    progress = { mainViewState.detectingProgress },
-                    modifier = Modifier.fillMaxWidth(),
-                    color = ProgressIndicatorDefaults.linearColor,
-                    trackColor = ProgressIndicatorDefaults.linearTrackColor,
-                    strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
-                )
-            }
+                        },
+                        enabled = mainViewState.folderPath.isNotEmpty(),
+                        modifier = Modifier.align(Alignment.End),
+                        content = { Text("Detect") }
+                    ) }
+                ))
+            DataTable(content = testData)
+            LinearProgressIndicator(
+                progress = { mainViewState.detectingProgress },
+                modifier = Modifier.fillMaxWidth(),
+            )
         }
 
         if (mainViewState.isDialogOpen) {
