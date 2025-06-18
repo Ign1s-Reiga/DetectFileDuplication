@@ -67,12 +67,12 @@ fun App() {
                                     Result.NOT_EXISTS -> {
                                         mainViewState.open()
                                         dialogContent =
-                                            "Such folder was not found" to "Please check folder path what you typed is correctly."
+                                            "Such folder was not found" to "Please check that the folder path you entered is correct."
                                     }
                                     Result.INVALID_PATH -> {
                                         mainViewState.open()
                                         dialogContent =
-                                            "Invalid folder path" to "Please check folder path what you typed is correctly."
+                                            "Invalid folder path" to "Please check that the folder path you entered is correct."
                                     }
                                     else -> {}
                                 }
