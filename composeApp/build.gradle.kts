@@ -30,6 +30,7 @@ kotlin {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.immuCollections)
             implementation(libs.kotlinx.coroutinesSwing)
+            implementation(libs.kotlin.result)
         }
     }
 }

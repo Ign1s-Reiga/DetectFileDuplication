@@ -25,11 +25,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import kotlinx.collections.immutable.ImmutableList
 
 @Composable
 @Preview
-fun DataTable(content: ImmutableList<String>) {
+fun DataTable(content: List<ItemData>) {
     val dataList by remember(content) { mutableStateOf(content) }
 
     Box(modifier = Modifier.padding(24.dp)) {
@@ -38,9 +37,9 @@ fun DataTable(content: ImmutableList<String>) {
             DataTableItem("Column 1", "Column 2", true)
             HorizontalDivider(modifier = Modifier.padding(bottom = 8.dp))
             LazyColumn(state = state) {
-                items(dataList, { it }) {
+                items(dataList, { it.hash }) {
                     Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 5.dp)) { // 後でclickableをつける
-                        Text(it)
+                        DataTableItem(it.hash, it.files.size.toString())
                     }
                 }
             }
@@ -72,6 +71,8 @@ fun DataTableItem(hash: String, count: String, isTopRow: Boolean = false) {
         }
     }
 }
+
+data class ItemData(val hash: String, val files: List<String>)
 
 val buttonShape = { idx: Int, isTopRow: Boolean ->
     if (isTopRow) {
