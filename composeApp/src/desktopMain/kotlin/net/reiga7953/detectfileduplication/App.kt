@@ -15,21 +15,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import kotlinx.collections.immutable.persistentListOf
 
 @Composable
 @Preview
 fun App() {
     val stateHolder = remember { MainViewStateHolder() }
+    var dataTableContent = remember { mutableStateListOf<ItemData>() }
     var dialogContent = "Title" to "Content"
-    val dataTableContent = mutableListOf<ItemData>()
 
     MaterialTheme {
         Column(modifier = Modifier.padding(40.dp)) {
@@ -80,9 +80,9 @@ fun App() {
                             }
                             it.isOk -> {
                                 dataTableContent.clear()
-                                dataTableContent.plus(it.value.map { (key, value) ->
-                                    ItemData(key.toString(Charsets.UTF_8), value)
-                                }.also(::println))
+                                dataTableContent.addAll(it.value.map { (key, value) ->
+                                    ItemData(key, value)
+                                })
                             }
                         }
                     }

@@ -7,8 +7,14 @@ import java.io.File
 import java.nio.file.InvalidPathException
 import java.nio.file.Path
 import java.security.MessageDigest
+import kotlin.math.round
+import kotlin.properties.Delegates
 
-fun detectFileDuplication(folderPathStr: String, extFilter: List<String>, onProgressChange: (Float) -> Unit): Result<Map<ByteArray, List<String>>, ErrCode> {
+var currentProg = 0.10F
+var progStepValue by Delegates.notNull<Float>()
+val md: MessageDigest = MessageDigest.getInstance("SHA-256")
+
+fun detectFileDuplication(folderPathStr: String, extFilter: List<String>, onProgressChange: (Float) -> Unit): Result<Map<String, List<String>>, ErrCode> {
     return try {
         val path = Path.of(folderPathStr)
         val folder = path.toFile()
@@ -24,10 +30,13 @@ fun detectFileDuplication(folderPathStr: String, extFilter: List<String>, onProg
         folder.listFiles { it.isFile }
             .filter { if (extFilter.isEmpty()) true else extFilter.contains(it.extension) }
             .takeIf { it.isNotEmpty() }
-            ?.also { progStepValue = (0.95F - currentProg) / (it.size - 1)}
-            ?.associateBy({ deriveFileHash(it, onProgressChange) }, { it.name })
+            ?.also {
+                progStepValue = round((0.90F - currentProg) / it.size * 1000) / 1000
+                println("Total files: ${it.size}, Step value: $progStepValue")
+            }
+            ?.associateBy({ deriveFileHash(it, onProgressChange)}, { it.name })
             ?.let { map ->
-                Ok(map.entries.groupBy { it.key }.mapValues { entry -> entry.value.map { it.value } })
+                Ok(map.entries.groupBy({ it.key.joinToString("") { byte -> "%02x".format(byte) } }, { it.value }))
                     .also { onProgressChange(1.0F) }
             } ?: Err(ErrCode.NO_FILES).also { onProgressChange(1.0F) }
     } catch (_: InvalidPathException) {
@@ -37,15 +46,13 @@ fun detectFileDuplication(folderPathStr: String, extFilter: List<String>, onProg
     }
 }
 
-var currentProg = 0.10F
-var progStepValue = 0.0F
-val md: MessageDigest = MessageDigest.getInstance("SHA-256")
-
 private fun deriveFileHash(file: File, progress: (Float) -> Unit): ByteArray {
+    println("File: ${file.name}, Size: ${file.length()} bytes")
     md.update(file.readBytes())
     val hash = md.digest()
     md.reset()
-    currentProg + progStepValue
+    currentProg += progStepValue
+    currentProg = round(currentProg * 1000) / 1000
     progress(currentProg)
     return hash
 }
