@@ -4,14 +4,17 @@ import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Surface
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.PersistentList
 
@@ -21,29 +24,25 @@ import kotlinx.collections.immutable.PersistentList
 @Composable
 @Preview
 fun GridView(listOfContent: PersistentList<@Composable () -> Unit>) {
+    var maxWidth by remember { mutableStateOf(584) } // Default max width
     FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        // FlowRow.width - (TonalButton.width + spacing * 2) = TextField.maxWidth
+        modifier = Modifier.onSizeChanged { maxWidth = it.width - (100 + 18 * 2) },
+        horizontalArrangement = Arrangement.spacedBy(18.dp),
         maxItemsInEachRow = 2,
+        maxLines = 2
     ) {
         listOfContent.forEachIndexed { idx, composable ->
-            Surface(
+            Box(
                 modifier = Modifier.height(70.dp).then(
                     when {
-                        idx == listOfContent.size - 1 || idx % 2 != 0 -> Modifier.weight(1f)
-                        else -> Modifier.width(200.dp)
+                        idx % 2 == 0 -> Modifier.weight(1.0F).widthIn(max = maxWidth.dp)
+                        else -> Modifier.width(100.dp)
                     }
                 ),
-                color = Color(0xFFFFFFFF)
+                contentAlignment = Alignment.CenterStart
             ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = when {
-                        idx == listOfContent.size - 1 -> Alignment.CenterEnd
-                        else -> Alignment.CenterStart
-                    }
-                ) {
-                    composable()
-                }
+                composable()
             }
         }
     }

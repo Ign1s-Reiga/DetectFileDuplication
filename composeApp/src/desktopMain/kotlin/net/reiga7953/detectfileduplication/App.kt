@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
@@ -14,89 +15,96 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import kotlinx.collections.immutable.persistentListOf
-
-import java.io.File
-import java.nio.file.InvalidPathException
-import java.nio.file.Path
 
 @Composable
 @Preview
 fun App() {
-    val mainViewState = remember { MainViewStateHolder() }
+    val stateHolder = remember { MainViewStateHolder() }
+    var dataTableContent = remember { mutableStateListOf<ItemData>() }
     var dialogContent = "Title" to "Content"
-
-    val regex = Regex("")
-    val testData = persistentListOf("Apple", "Orange", "Grape")
 
     MaterialTheme {
         Column(modifier = Modifier.padding(40.dp)) {
             GridView(
                 persistentListOf(
-                    { Text("Folder path: ") },
                     { TextField(
-                        value = mainViewState.folderPath,
+                        value = stateHolder.folderPath,
                         modifier = Modifier.fillMaxWidth(),
-                        isError = mainViewState.folderPath.isEmpty(),
+                        label = { Text("Folder Path ") },
+                        isError = stateHolder.folderPath.isEmpty(),
                         onValueChange = {
-                            mainViewState.folderPath = it
+                            stateHolder.folderPath = it
                         },
                         singleLine = true
                     ) },
-                    { Text("Extension filter (Optional): ", fontSize = 16.sp) },
+                    { FilledTonalButton(
+                        onClick = {},
+                        content = { Text("Select") }
+                    ) },
                     { TextField(
-                        value = mainViewState.extFilter,
+                        value = stateHolder.extFilter,
                         modifier = Modifier.fillMaxWidth(),
+                        label = { Text("Extension filter (Optional)") },
                         placeholder = { Text("ex) .png, .jpg") },
                         onValueChange = {
-                            mainViewState.extFilter = it
+                            stateHolder.extFilter = it
                         },
                         singleLine = true,
                     ) },
-                    { Button(
-                        onClick = {
-                            detectFileDuplication(mainViewState.folderPath).also {
-                                when (it) {
-                                    Result.NOT_EXISTS -> {
-                                        mainViewState.open()
-                                        dialogContent =
-                                            "Such folder was not found" to "Please check that the folder path you entered is correct."
-                                    }
-                                    Result.INVALID_PATH -> {
-                                        mainViewState.open()
-                                        dialogContent =
-                                            "Invalid folder path" to "Please check that the folder path you entered is correct."
-                                    }
-                                    else -> {}
-                                }
-                            }
-                        },
-                        enabled = mainViewState.folderPath.isNotEmpty(),
-                        modifier = Modifier.align(Alignment.End),
-                        content = { Text("Detect") }
+                    { FilledTonalButton(
+                        onClick = {},
+                        content = { Text("Select") }
                     ) }
                 ))
-            DataTable(content = testData)
+            Button(
+                onClick = {
+                    detectFileDuplication(
+                        stateHolder.folderPath,
+                        stateHolder.extFilter.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+                    ) {
+                        stateHolder.detectingProgress = it
+                        println("Progress: $it")
+                    }.also {
+                        when {
+                            it.isErr -> {
+                                stateHolder.open()
+                                dialogContent = it.error.message to "Please check that the folder path you entered is correct."
+                            }
+                            it.isOk -> {
+                                dataTableContent.clear()
+                                dataTableContent.addAll(it.value.map { (key, value) ->
+                                    ItemData(key, value)
+                                })
+                            }
+                        }
+                    }
+                },
+                enabled = stateHolder.folderPath.isNotEmpty(),
+                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                content = { Text("Detect") }
+            )
+            DataTable(content = dataTableContent)
             LinearProgressIndicator(
-                progress = { mainViewState.detectingProgress },
+                progress = { stateHolder.detectingProgress },
                 modifier = Modifier.fillMaxWidth(),
             )
         }
 
-        if (mainViewState.isDialogOpen) {
+        if (stateHolder.isDialogOpen) {
             AlertDialog(
                 onDismissRequest = {},
                 confirmButton = {
                     Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp)) {
                         Button(
-                            onClick = { mainViewState.close() },
+                            onClick = { stateHolder.close() },
                             modifier = Modifier.align(Alignment.End),
                             content = { Text("OK") }
                         )
@@ -107,28 +115,6 @@ fun App() {
             )
         }
     }
-}
-
-private fun detectFileDuplication(folderPathStr: String): Result {
-    val fileList = mutableListOf<File>()
-
-    try {
-        val path = Path.of(folderPathStr)
-        val folder = path.toFile()
-
-        if (!folder.exists())
-            return Result.NOT_EXISTS
-    } catch (e: InvalidPathException) {
-        e.printStackTrace()
-        return Result.INVALID_PATH
-    }
-    return Result.SUCCESS
-}
-
-enum class Result {
-    NOT_EXISTS,
-    INVALID_PATH,
-    SUCCESS
 }
 
 @Stable

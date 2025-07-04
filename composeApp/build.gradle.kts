@@ -30,6 +30,7 @@ kotlin {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.immuCollections)
             implementation(libs.kotlinx.coroutinesSwing)
+            implementation(libs.kotlin.result)
         }
     }
 }
@@ -41,7 +42,7 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Exe)
-            packageName = "net.reiga7953.detectfileduplication"
+            packageName = "DetectFileDuplication"
             packageVersion = "1.0.0"
         }
     }
