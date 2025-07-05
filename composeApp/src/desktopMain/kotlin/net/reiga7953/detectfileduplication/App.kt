@@ -22,14 +22,27 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.github.vinceglb.filekit.FileKit
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
+import io.github.vinceglb.filekit.dialogs.openDirectoryPicker
+import io.github.vinceglb.filekit.path
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
+import java.awt.Window
+import java.io.File
 
 @Composable
 @Preview
-fun App() {
+fun App(ownerWindow: Window) {
     val stateHolder = remember { MainViewStateHolder() }
-    var dataTableContent = remember { mutableStateListOf<ItemData>() }
+    val dataTableContent = remember { mutableStateListOf<ItemData>() }
     var dialogContent = "Title" to "Content"
+
+    val dialogSettings = { owner: Window -> FileKitDialogSettings(owner) }
 
     MaterialTheme {
         Column(modifier = Modifier.padding(40.dp)) {
@@ -46,7 +59,11 @@ fun App() {
                         singleLine = true
                     ) },
                     { FilledTonalButton(
-                        onClick = {},
+                        onClick = {
+                            runBlocking {
+                                stateHolder.folderPath = openDirectoryPicker(dialogSettings(ownerWindow))
+                            }
+                        },
                         content = { Text("Select") }
                     ) },
                     { TextField(
@@ -58,10 +75,6 @@ fun App() {
                             stateHolder.extFilter = it
                         },
                         singleLine = true,
-                    ) },
-                    { FilledTonalButton(
-                        onClick = {},
-                        content = { Text("Select") }
                     ) }
                 ))
             Button(
@@ -134,5 +147,15 @@ class MainViewStateHolder {
 
     fun close() {
         isDialogOpen = false
+    }
+}
+
+suspend fun openDirectoryPicker(dialogSettings: FileKitDialogSettings): String = coroutineScope {
+    withContext(Dispatchers.Unconfined) {
+        FileKit.openDirectoryPicker(
+            "Select Folder",
+            PlatformFile(File(System.getProperty("user.dir"))),
+            dialogSettings
+        )?.path ?: ""
     }
 }
