@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -33,7 +34,9 @@ fun DataTable(content: List<ItemData>) {
             HorizontalDivider(modifier = Modifier.padding(bottom = 8.dp))
             LazyColumn(state = state) {
                 items(content, { it.hash + "-" +  it.files.size }) {
-                    DataTableItem(it.hash, it.files.size.toString())
+                    DataTableItem(it.hash, it.files.size.toString()) {
+                        
+                    }
                 }
             }
 
@@ -47,7 +50,7 @@ fun DataTable(content: List<ItemData>) {
 
 @Composable
 @Preview
-fun DataTableItem(hash: String, count: String, isTopRow: Boolean = false) {
+fun DataTableItem(hash: String, count: String, isTopRow: Boolean = false, onRightClick: () -> Unit = {}) {
     Row(
         modifier = Modifier.fillMaxWidth().height(50.dp).padding(horizontal = 5.dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -55,9 +58,9 @@ fun DataTableItem(hash: String, count: String, isTopRow: Boolean = false) {
     ) {
         repeat(2) {
             TextButton(
-                onClick = {},
+                onClick = { if (it % 2 == 1) onRightClick() },
                 shape = buttonShape(it, isTopRow),
-                modifier = Modifier.weight(1f)
+                modifier = if (it % 2 == 0) Modifier.weight(1f) else Modifier.width(180.dp)
             ) {
                 Text(if (it == 0) hash else count)
             }
