@@ -1,0 +1,26 @@
+name: Test
+run-name: Testing ${{ inputs.build_id }}
+on:
+  push:
+    branches: [ 'main' ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        name: Checkout
+
+      - uses: actions/setup-java@v4
+        name: Setup JDK
+        with:
+          java-version: 21
+          distribution: 'temurin'
+
+      - uses: gradle/actions/setup-gradle@v4
+        name: Setup Gradle
+        with:
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+
+      - run: gradle build --configuration-cache
+        name: Build
