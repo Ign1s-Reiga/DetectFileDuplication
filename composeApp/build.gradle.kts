@@ -31,6 +31,9 @@ kotlin {
             implementation(libs.kotlinx.immuCollections)
             implementation(libs.kotlinx.coroutinesSwing)
             implementation(libs.kotlin.result)
+            implementation(libs.filekit.core)
+            implementation(libs.filekit.dialogs)
+            implementation(libs.filekit.dialogsCompose)
         }
     }
 }
@@ -39,11 +42,5 @@ kotlin {
 compose.desktop {
     application {
         mainClass = "net.reiga7953.detectfileduplication.MainKt"
-
-        nativeDistributions {
-            targetFormats(TargetFormat.Exe)
-            packageName = "DetectFileDuplication"
-            packageVersion = "1.0.0"
-        }
     }
 }
