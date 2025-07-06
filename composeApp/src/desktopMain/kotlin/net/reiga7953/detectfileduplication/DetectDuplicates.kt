@@ -27,6 +27,7 @@ fun detectFileDuplication(folderPathStr: String, extFilter: List<String>, onProg
         onProgressChange(0.1F)
 
         // TODO: Add option to collect files recursively
+        // TODO: currentProg should have percentage of files processed.
         folder.listFiles { it.isFile }
             .filter { if (extFilter.isEmpty()) true else extFilter.contains(it.extension) }
             .takeIf { it.isNotEmpty() }
