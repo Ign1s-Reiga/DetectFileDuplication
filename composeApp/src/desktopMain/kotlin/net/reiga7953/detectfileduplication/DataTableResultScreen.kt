@@ -61,7 +61,7 @@ data class DataTableResultScreen(val content: List<ItemData>): Screen {
                     shape = buttonShape(it, isTopRow),
                     modifier = if (it % 2 == 0) Modifier.weight(1f) else Modifier.width(180.dp)
                 ) {
-                    Text(if (it == 0) hash else count)
+                    Text(text = if (it == 0) hash else count, softWrap = false)
                 }
             }
         }
