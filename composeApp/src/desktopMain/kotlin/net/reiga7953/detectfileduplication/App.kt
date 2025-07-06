@@ -2,8 +2,11 @@ package net.reiga7953.detectfileduplication
 
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalButton
@@ -77,33 +80,42 @@ fun App(ownerWindow: Window) {
                         singleLine = true,
                     ) }
                 ))
-            Button(
-                onClick = {
-                    detectFileDuplication(
-                        stateHolder.folderPath,
-                        stateHolder.extFilter.split(",").map { it.trim() }.filter { it.isNotEmpty() }
-                    ) {
-                        stateHolder.detectingProgress = it
-                        println("Progress: $it")
-                    }.also {
-                        when {
-                            it.isErr -> {
-                                stateHolder.open()
-                                dialogContent = it.error.message to "Please check that the folder path you entered is correct."
-                            }
-                            it.isOk -> {
-                                dataTableContent.clear()
-                                dataTableContent.addAll(it.value.map { (key, value) ->
-                                    ItemData(key, value)
-                                })
+            Row(modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
+                Button(
+                    onClick = {
+                        detectFileDuplication(
+                            stateHolder.folderPath,
+                            stateHolder.extFilter.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+                        ) {
+                            stateHolder.detectingProgress = it
+                            println("Progress: $it")
+                        }.also {
+                            when {
+                                it.isErr -> {
+                                    stateHolder.open()
+                                    dialogContent = it.error.message to "Please check that the folder path you typed is correct."
+                                }
+                                it.isOk -> {
+                                    dataTableContent.clear()
+                                    dataTableContent.addAll(it.value.map { (key, value) ->
+                                        ItemData(key, value)
+                                    })
+                                }
                             }
                         }
-                    }
-                },
-                enabled = stateHolder.folderPath.isNotEmpty(),
-                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-                content = { Text("Detect") }
-            )
+                    },
+                    enabled = stateHolder.folderPath.isNotEmpty(),
+                    modifier = Modifier.weight(1F),
+                    content = { Text("Detect") }
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Button(
+                    onClick = {},
+                    enabled = dataTableContent.isNotEmpty(),
+                    modifier = Modifier.weight(1F),
+                    content = { Text("Delete Duplicates") }
+                )
+            }
             DataTable(content = dataTableContent)
             LinearProgressIndicator(
                 progress = { stateHolder.detectingProgress },
