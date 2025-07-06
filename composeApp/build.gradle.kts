@@ -34,6 +34,8 @@ kotlin {
             implementation(libs.filekit.core)
             implementation(libs.filekit.dialogs)
             implementation(libs.filekit.dialogsCompose)
+            implementation(libs.voyager.navigator)
+            implementation(libs.voyager.transitions)
         }
     }
 }
