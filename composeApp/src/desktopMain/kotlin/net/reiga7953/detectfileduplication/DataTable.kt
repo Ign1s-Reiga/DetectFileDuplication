@@ -31,42 +31,8 @@ fun DataTable(content: List<ItemData>) {
     val screens = listOf(DataTableResultScreen(content))
 
     Box(modifier = Modifier.padding(24.dp)) {
-        Card {
-            DataTableItem("Hash", "Dup. Count", true)
-            HorizontalDivider(modifier = Modifier.padding(bottom = 8.dp))
+        Card(modifier = Modifier.fillMaxHeight()) {
             Navigator(screens)
         }
-    }
-}
-
-@Composable
-@Preview
-fun DataTableItem(hash: String, count: String, isTopRow: Boolean = false, onRightClick: () -> Unit = {}) {
-    Row(
-        modifier = Modifier.fillMaxWidth().height(50.dp).padding(horizontal = 5.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        repeat(2) {
-            TextButton(
-                onClick = { if (it % 2 == 1) onRightClick() },
-                shape = buttonShape(it, isTopRow),
-                modifier = if (it % 2 == 0) Modifier.weight(1f) else Modifier.width(180.dp)
-            ) {
-                Text(if (it == 0) hash else count)
-            }
-        }
-    }
-}
-
-val buttonShape = { idx: Int, isTopRow: Boolean ->
-    if (isTopRow) {
-        if (idx == 0) {
-            RoundedCornerShape(topStart = 12.dp, topEnd = 4.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
-        } else {
-            RoundedCornerShape(topStart = 4.dp, topEnd = 12.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
-        }
-    } else {
-        RoundedCornerShape(4.dp)
     }
 }

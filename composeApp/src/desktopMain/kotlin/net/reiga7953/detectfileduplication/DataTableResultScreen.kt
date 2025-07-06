@@ -13,6 +13,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollbarAdapter
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -30,6 +32,8 @@ data class DataTableResultScreen(val content: List<ItemData>): Screen {
         val state = rememberLazyListState()
         val navigator = LocalNavigator.currentOrThrow
 
+        DataTableItem("Hash", "Dup. Count", true)
+        HorizontalDivider(modifier = Modifier.padding(bottom = 8.dp))
         LazyColumn(state = state) {
             items(content, { it.hash + "-" +  it.files.size }) {
                 DataTableItem(it.hash, it.files.size.toString()) {
@@ -41,6 +45,38 @@ data class DataTableResultScreen(val content: List<ItemData>): Screen {
             modifier = Modifier.fillMaxHeight(),
             adapter = rememberScrollbarAdapter(state)
         )
+    }
+
+    @Composable
+    @Preview
+    private fun DataTableItem(hash: String, count: String, isTopRow: Boolean = false, onRightClick: () -> Unit = {}) {
+        Row(
+            modifier = Modifier.fillMaxWidth().height(50.dp).padding(horizontal = 5.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            repeat(2) {
+                TextButton(
+                    onClick = { if (it % 2 == 1) onRightClick() },
+                    shape = buttonShape(it, isTopRow),
+                    modifier = if (it % 2 == 0) Modifier.weight(1f) else Modifier.width(180.dp)
+                ) {
+                    Text(if (it == 0) hash else count)
+                }
+            }
+        }
+    }
+
+    private val buttonShape = { idx: Int, isTopRow: Boolean ->
+        if (isTopRow) {
+            if (idx == 0) {
+                RoundedCornerShape(topStart = 12.dp, topEnd = 4.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
+            } else {
+                RoundedCornerShape(topStart = 4.dp, topEnd = 12.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
+            }
+        } else {
+            RoundedCornerShape(4.dp)
+        }
     }
 }
 
