@@ -23,27 +23,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import cafe.adriel.voyager.navigator.Navigator
 
 @Composable
 @Preview
 fun DataTable(content: List<ItemData>) {
+    val screens = listOf(DataTableResultScreen(content))
+
     Box(modifier = Modifier.padding(24.dp)) {
         Card {
-            val state = rememberLazyListState()
             DataTableItem("Hash", "Dup. Count", true)
             HorizontalDivider(modifier = Modifier.padding(bottom = 8.dp))
-            LazyColumn(state = state) {
-                items(content, { it.hash + "-" +  it.files.size }) {
-                    DataTableItem(it.hash, it.files.size.toString()) {
-                        
-                    }
-                }
-            }
-
-            VerticalScrollbar(
-                modifier = Modifier.align(Alignment.CenterHorizontally).fillMaxHeight(),
-                adapter = rememberScrollbarAdapter(state)
-            )
+            Navigator(screens)
         }
     }
 }
@@ -67,8 +58,6 @@ fun DataTableItem(hash: String, count: String, isTopRow: Boolean = false, onRigh
         }
     }
 }
-
-data class ItemData(val hash: String, val files: List<String>)
 
 val buttonShape = { idx: Int, isTopRow: Boolean ->
     if (isTopRow) {
