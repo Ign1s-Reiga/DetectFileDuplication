@@ -81,4 +81,9 @@ data class DataTableResultScreen(val content: List<ItemData>): Screen {
     }
 }
 
-data class ItemData(val hash: String, val files: List<Path>)
+data class ItemData(val hash: String, val files: MutableList<Path>) {
+    fun removePaths(paths: List<Path>): ItemData {
+        paths.forEach { files.remove(it) }
+        return this
+    }
+}

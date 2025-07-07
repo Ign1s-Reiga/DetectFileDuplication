@@ -22,7 +22,6 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.vinceglb.filekit.FileKit
@@ -32,14 +31,11 @@ import io.github.vinceglb.filekit.dialogs.openDirectoryPicker
 import io.github.vinceglb.filekit.path
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.awt.Window
 import java.io.File
-import java.nio.file.Path
 
 @Composable
 @Preview
@@ -67,7 +63,11 @@ fun App(ownerWindow: Window) {
                     { FilledTonalButton(
                         onClick = {
                             AppCoroutineScope().launch(Dispatchers.Unconfined) {
-                                stateHolder.folderPath = openDirectoryPicker(dialogSettings(ownerWindow))
+                                stateHolder.folderPath = FileKit.openDirectoryPicker(
+                                    "Select Folder",
+                                    PlatformFile(File(System.getProperty("user.dir"))),
+                                    dialogSettings(ownerWindow)
+                                )?.path ?: ""
                             }
                         },
                         content = { Text("Select") }
@@ -95,13 +95,12 @@ fun App(ownerWindow: Window) {
                         }.also {
                             when {
                                 it.isErr -> {
-                                    stateHolder.open()
+                                    stateHolder.openErrDialog()
                                     dialogContent = it.error.message to "Please check that the folder path you typed is correct."
                                 }
                                 it.isOk -> {
-                                    dataTableContent.clear()
-                                    dataTableContent.addAll(it.value.map { (key, value) ->
-                                        ItemData(key, value)
+                                    dataTableContent.updateTo(it.value.map { (key, value) ->
+                                        ItemData(key, value.toMutableList())
                                     })
                                 }
                             }
@@ -113,16 +112,7 @@ fun App(ownerWindow: Window) {
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
-                    onClick = {
-                        // TODO: Popup toast when finished deleting files.
-                        dataTableContent.forEach {
-                            if (it.files.size > 1) {
-                                it.files.sortedBy { path -> path.toString() }
-                                    .drop(1)
-                                    .forEach { path -> deleteFile(path) }
-                            }
-                        }
-                    },
+                    onClick = { stateHolder.isConfirmDialogOpen = true },
                     enabled = dataTableContent.isNotEmpty(),
                     modifier = Modifier.weight(1F),
                     content = { Text("Delete All Duplicates") }
@@ -135,12 +125,12 @@ fun App(ownerWindow: Window) {
             )
         }
 
-        if (stateHolder.isDialogOpen) {
+        if (stateHolder.isErrDialogOpen) {
             AlertDialog(
                 onDismissRequest = {},
                 confirmButton = {
                     Button(
-                        onClick = { stateHolder.close() },
+                        onClick = { stateHolder.closeErrDialog() },
                         content = { Text("OK") }
                     )
                 },
@@ -148,10 +138,30 @@ fun App(ownerWindow: Window) {
                 text = { Text(dialogContent.second) }
             )
         }
+        ConfirmationDialog(
+            visible = stateHolder.isConfirmDialogOpen,
+            onConfirm = {
+                stateHolder.isConfirmDialogOpen = false
+                // TODO: Popup toast when finished deleting files.
+                // TODO: Handle deleteFile Result
+                // TODO: Add ignore word list setting, ignore files that contains those words when sorting.
+                dataTableContent.map {
+                    if (it.files.size > 1) {
+                        val sorted = it.files.sortedBy { path -> path.toString() }.drop(1)
+                        sorted.forEach { path -> deleteFile(path) }
+                            .let { _ -> it.removePaths(sorted) }
+                    } else {
+                        it
+                    }
+                }.also {
+                    dataTableContent.updateTo(it)
+                }
+            },
+            onDismiss = { stateHolder.isConfirmDialogOpen = false },
+            text = { Text("Are you sure you want to delete all duplicate files? This action cannot be undone.") }
+        )
     }
 }
-
-
 
 @Stable
 class MainViewStateHolder {
@@ -161,24 +171,21 @@ class MainViewStateHolder {
         internal set
     var detectingProgress by mutableFloatStateOf(0.0F)
         internal set
-    var isDialogOpen by mutableStateOf(false)
+    var isErrDialogOpen by mutableStateOf(false)
         private set
+    var isConfirmDialogOpen by mutableStateOf(false)
+        internal set
 
-    fun open() {
-        isDialogOpen = true
+    fun openErrDialog() {
+        isErrDialogOpen = true
     }
 
-    fun close() {
-        isDialogOpen = false
+    fun closeErrDialog() {
+        isErrDialogOpen = false
     }
 }
 
-suspend fun openDirectoryPicker(dialogSettings: FileKitDialogSettings): String = coroutineScope {
-    withContext(Dispatchers.Unconfined) {
-        FileKit.openDirectoryPicker(
-            "Select Folder",
-            PlatformFile(File(System.getProperty("user.dir"))),
-            dialogSettings
-        )?.path ?: ""
-    }
+fun <T> MutableList<T>.updateTo(newList: List<T>) {
+    clear()
+    addAll(newList)
 }
