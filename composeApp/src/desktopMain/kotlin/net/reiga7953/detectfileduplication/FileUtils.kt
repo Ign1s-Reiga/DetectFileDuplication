@@ -8,11 +8,8 @@ import java.lang.Exception
 import java.nio.file.Path
 import kotlin.io.path.deleteIfExists
 
-fun deleteFile(basePath: Path, file: String): Result<Unit, Exception> {
-    val filePath = basePath.resolve(file)
-
-    return when (filePath.deleteIfExists()) {
-        true -> Ok(Unit)
-        false -> Err(IOException("Failed to delete file: $file"))
-    }
+// TODO: Handle Result values
+fun deleteFile(filePath: Path): Result<Unit, Exception> = when (filePath.deleteIfExists()) {
+    true -> Ok(Unit)
+    false -> Err(IOException("Failed to delete file: $filePath"))
 }

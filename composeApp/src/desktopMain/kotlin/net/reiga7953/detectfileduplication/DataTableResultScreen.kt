@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import java.nio.file.Path
 
 data class DataTableResultScreen(val content: List<ItemData>): Screen {
     @Composable
@@ -80,4 +81,4 @@ data class DataTableResultScreen(val content: List<ItemData>): Screen {
     }
 }
 
-data class ItemData(val hash: String, val files: List<String>)
+data class ItemData(val hash: String, val files: List<Path>)

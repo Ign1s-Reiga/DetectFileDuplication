@@ -14,7 +14,7 @@ var currentProg = 0.10F
 var progStepValue by Delegates.notNull<Float>()
 val md: MessageDigest = MessageDigest.getInstance("SHA-256")
 
-fun detectFileDuplication(folderPathStr: String, extFilter: List<String>, onProgressChange: (Float) -> Unit): Result<Map<String, List<String>>, ErrCode> {
+fun detectFileDuplication(folderPathStr: String, extFilter: List<String>, onProgressChange: (Float) -> Unit): Result<Map<String, List<Path>>, ErrCode> {
     return try {
         val path = Path.of(folderPathStr)
         val folder = path.toFile()
@@ -35,7 +35,7 @@ fun detectFileDuplication(folderPathStr: String, extFilter: List<String>, onProg
                 progStepValue = round((0.90F - currentProg) / it.size * 1000) / 1000
                 println("Total files: ${it.size}, Step value: $progStepValue")
             }
-            ?.associateBy({ deriveFileHash(it, onProgressChange)}, { it.name })
+            ?.associateBy({ deriveFileHash(it, onProgressChange)}, { it.toPath().normalize() })
             ?.let { map ->
                 Ok(map.entries.groupBy({ it.key.joinToString("") { byte -> "%02x".format(byte) } }, { it.value }))
                     .also { onProgressChange(1.0F) }

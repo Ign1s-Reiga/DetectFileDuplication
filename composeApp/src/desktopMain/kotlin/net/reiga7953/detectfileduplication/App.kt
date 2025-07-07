@@ -37,6 +37,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.awt.Window
 import java.io.File
+import java.nio.file.Path
 
 @Composable
 @Preview
@@ -110,10 +111,19 @@ fun App(ownerWindow: Window) {
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
-                    onClick = {},
+                    onClick = {
+                        // TODO: Popup toast when finished deleting files.
+                        dataTableContent.forEach {
+                            if (it.files.size > 1) {
+                                it.files.sortedBy { path -> path.toString() }
+                                    .drop(1)
+                                    .forEach { path -> deleteFile(path) }
+                            }
+                        }
+                    },
                     enabled = dataTableContent.isNotEmpty(),
                     modifier = Modifier.weight(1F),
-                    content = { Text("Delete Duplicates") }
+                    content = { Text("Delete All Duplicates") }
                 )
             }
             DataTable(content = dataTableContent)
