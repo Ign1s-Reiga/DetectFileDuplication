@@ -32,7 +32,9 @@ import io.github.vinceglb.filekit.dialogs.openDirectoryPicker
 import io.github.vinceglb.filekit.path
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.awt.Window
@@ -64,7 +66,7 @@ fun App(ownerWindow: Window) {
                     ) },
                     { FilledTonalButton(
                         onClick = {
-                            runBlocking {
+                            AppCoroutineScope().launch(Dispatchers.Unconfined) {
                                 stateHolder.folderPath = openDirectoryPicker(dialogSettings(ownerWindow))
                             }
                         },
@@ -137,13 +139,10 @@ fun App(ownerWindow: Window) {
             AlertDialog(
                 onDismissRequest = {},
                 confirmButton = {
-                    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp)) {
-                        Button(
-                            onClick = { stateHolder.close() },
-                            modifier = Modifier.align(Alignment.End),
-                            content = { Text("OK") }
-                        )
-                    }
+                    Button(
+                        onClick = { stateHolder.close() },
+                        content = { Text("OK") }
+                    )
                 },
                 title = { Text(dialogContent.first) },
                 text = { Text(dialogContent.second) }
@@ -151,6 +150,8 @@ fun App(ownerWindow: Window) {
         }
     }
 }
+
+
 
 @Stable
 class MainViewStateHolder {
